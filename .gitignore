@@ -129,3 +129,10 @@ dmypy.json
 .pyre/
 
 save/
+
+
+# added by me
+t2m/
+kit/
+glove/
+body_models/smpl/
