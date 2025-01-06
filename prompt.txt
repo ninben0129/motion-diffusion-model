@@ -1,0 +1,1 @@
+python -m sample.generate --model_path ./save/humanml_enc_512_50steps/model000750000.pt --text_prompt "the person walked forward and is picking up his toolbox."
