@@ -6,3 +6,7 @@ python -m sample.generate --model_path ./save/humanml_trans_enc_512/model0002000
 python -m train.finetune_mdm --save_dir save/finetune_0304 --dataset humanml
 
 # installed pyyaml and blobfile
+
+python -m sample.generate --model_path ./save/finetune_0304/model000100000.pt --text_prompt "the person angrily walking."
+
+python -m sample.generate --model_path ./save/humanml_trans_enc_512/model000475000.pt --text_prompt "the person angrily walking."
