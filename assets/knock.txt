@@ -1,0 +1,7 @@
+A person knocked a door in joy.
+A person knocked a door in sad.
+A person knocked a door in anger.
+A person knocked a door in surprise.
+A person knocked a door in fear.
+A person knocked a door in disgust.
+A person knocked a door in contempt.

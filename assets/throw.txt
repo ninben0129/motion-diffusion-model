@@ -1,0 +1,7 @@
+A person threw a ball in joy.
+A person threw a ball in sad.
+A person threw a ball in anger.
+A person threw a ball in surprise.
+A person threw a ball in fear.
+A person threw a ball in disgust.
+A person threw a ball in contempt.

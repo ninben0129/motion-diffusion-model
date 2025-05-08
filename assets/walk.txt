@@ -1,0 +1,7 @@
+A person is walking joyfully.
+A person is walking sadly
+A person is walking angrily.
+A person is walking in surprise.
+A person is walking fearfully.
+A person is walking in disgust.
+A person is walking in contempt.

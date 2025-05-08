@@ -40,7 +40,8 @@ def main():
     print("creating model and diffusion...")
     model, diffusion = create_model_and_diffusion(args, data)
     print("Loading checkpoints...")
-    model_path="./save/humanml_trans_enc_512/model000200000.pt"
+    # model_path="./save/humanml_trans_enc_512/model000200000.pt"
+    model_path = "./save/humanml_trans_enc_512/model000475000.pt"
     state_dict = torch.load(model_path, map_location='cpu')
     load_model_wo_clip(model, state_dict)
     model.to(dist_util.dev())

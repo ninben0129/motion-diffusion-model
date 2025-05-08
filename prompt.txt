@@ -19,7 +19,7 @@ python -m sample.generate --model_path ./save/finetune_0318/model000500000.pt --
 
 python -m sample.generate --model_path ./save/finetune_0304/model000600000.pt --text_prompt "A person steps back in surprise."
 
-python -m sample.generate --model_path ./save/humanml_trans_enc_512/model000200000.pt --text_prompt "A person steps back in surprise."
+python -m sample.generate --model_path ./save/humanml_trans_enc_512/model000300000.pt --text_prompt "A person steps back in surprise."
 
 
 
@@ -29,6 +29,15 @@ python -m sample.generate --model_path ./save/finetune_0318/model000500000.pt --
 
 python -m sample.generate --model_path ./save/finetune_0318/model000000000.pt --text_prompt "A person is walking in contempt."
 
-python -m sample.generate --model_path ./save/finetune_0401/model000500000.pt --input_text ./assets/text_test.txt
+python -m sample.generate --model_path ./save/finetune_0401/model000200000.pt --input_text ./assets/handdown.txt
 
-python -m sample.generate --model_path ./save/finetune_0401/model000000000.pt --input_text ./assets/text_test.txt
+python -m sample.generate --model_path ./save/finetune_0401/model000000000.pt --input_text ./assets/unseen.txt
+
+
+python -m sample.generate --model_path ./save/humanml_trans_enc_512/model000475000.pt --text_prompt "A person leans forward a little and looks at something, then covers his face with both hands and runs back in disgust."
+
+python -m sample.generate --model_path ./save/finetune_0401/model000000000.pt --input_text ./assets/walk.txt
+
+python -m sample.generate --model_path ./save/finetune_0401/model000000000.pt --input_text ./assets/knock.txt
+
+python -m train.finetune_mdm --save_dir save/finetune_0501 --dataset humanml
