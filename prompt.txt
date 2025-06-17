@@ -67,3 +67,5 @@ python -m sample.generate --model_path ./save/finetune_0524_person/model00020000
 python -m train.finetune_mdm --save_dir save/finetune_level_0612 --dataset humanml
 
 python -m train.finetune_mdm --save_dir save/finetune_level_0614 --dataset humanml
+
+python -m sample.generatefordemo --model_path ./save/finetune_0524_person/model000400000.pt --text_prompt "The person angrily crosses his arms over his chest." --pathfordemo ./outputsfordemo/testconda.mp4

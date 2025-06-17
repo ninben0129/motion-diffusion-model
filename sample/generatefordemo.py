@@ -5,6 +5,8 @@ numpy array. This can be used to produce samples for FID evaluation.
 """
 from utils.fixseed import fixseed
 import os
+import sys
+import uuid
 import numpy as np
 import torch
 from utils.parser_util import generate_args
@@ -20,7 +22,42 @@ from data_loaders.tensors import collate
 
 
 def main():
+    import sys
+
+    # 1. sys.argv から --pathfordemo を先に取り出す
+    pathfordemo = 'outputsfordemo/test.mp4'
+    argv = []
+    skip = False
+    for i, arg in enumerate(sys.argv):
+        if skip:
+            skip = False
+            continue
+        if arg == '--pathfordemo':
+            if i + 1 < len(sys.argv):
+                pathfordemo = sys.argv[i + 1]
+            skip = True
+        else:
+            argv.append(arg)
+
+    # 2. 引数を一時的に sys.argv に再代入
+    sys.argv = argv
+
+    # 3. generate_args() を呼ぶ（parser_util.py 側はそのままでOK）
     args = generate_args()
+    args.pathfordemo = pathfordemo
+
+
+    # args = generate_args()
+
+    # # --- 追加の引数を手動で読み込む（parser_util.py を触らずに済ませる） ---
+    # import argparse
+    # if not hasattr(args, 'pathfordemo'):
+    #     parser = argparse.ArgumentParser()
+    #     parser.add_argument('--pathfordemo', type=str, default='outputsfordemo/test.mp4')
+    #     dummy_args, _ = parser.parse_known_args()
+    #     args.pathfordemo = dummy_args.pathfordemo
+
+
     fixseed(args.seed)
     out_path = args.output_dir
     name = os.path.basename(os.path.dirname(args.model_path))
@@ -155,19 +192,19 @@ def main():
     all_text = all_text[:total_num_samples]
     all_lengths = np.concatenate(all_lengths, axis=0)[:total_num_samples]
 
-    if os.path.exists(out_path):
-        shutil.rmtree(out_path)
-    os.makedirs(out_path)
+    # if os.path.exists(out_path):
+    #     shutil.rmtree(out_path)
+    # os.makedirs(out_path)
 
-    npy_path = os.path.join(out_path, 'results.npy')
-    # print(f"saving results file to [{npy_path}]")
-    np.save(npy_path,
-            {'motion': all_motions, 'text': all_text, 'lengths': all_lengths,
-             'num_samples': args.num_samples, 'num_repetitions': args.num_repetitions})
-    with open(npy_path.replace('.npy', '.txt'), 'w') as fw:
-        fw.write('\n'.join(all_text))
-    with open(npy_path.replace('.npy', '_len.txt'), 'w') as fw:
-        fw.write('\n'.join([str(l) for l in all_lengths]))
+    # npy_path = os.path.join(out_path, 'results.npy')
+    # # print(f"saving results file to [{npy_path}]")
+    # np.save(npy_path,
+    #         {'motion': all_motions, 'text': all_text, 'lengths': all_lengths,
+    #          'num_samples': args.num_samples, 'num_repetitions': args.num_repetitions})
+    # with open(npy_path.replace('.npy', '.txt'), 'w') as fw:
+    #     fw.write('\n'.join(all_text))
+    # with open(npy_path.replace('.npy', '_len.txt'), 'w') as fw:
+    #     fw.write('\n'.join([str(l) for l in all_lengths]))
 
     # print(f"saving visualizations to [{out_path}]...")
     skeleton = paramUtil.kit_kinematic_chain if args.dataset == 'kit' else paramUtil.t2m_kinematic_chain
@@ -178,25 +215,39 @@ def main():
     sample_print_template, row_print_template, all_print_template, \
     sample_file_template, row_file_template, all_file_template = construct_template_variables(args.unconstrained)
 
-    for sample_i in range(args.num_samples):
-        rep_files = []
-        for rep_i in range(args.num_repetitions):
-            caption = all_text[rep_i*args.batch_size + sample_i]
-            length = all_lengths[rep_i*args.batch_size + sample_i]
-            motion = all_motions[rep_i*args.batch_size + sample_i].transpose(2, 0, 1)[:length]
-            save_file = sample_file_template.format(sample_i, rep_i)
-            # print(sample_print_template.format(caption, sample_i, rep_i, save_file))
-            animation_save_path = os.path.join(out_path, save_file)
-            plot_3d_motion(animation_save_path, skeleton, motion, dataset=args.dataset, title=caption, fps=fps)
-            # Credit for visualization: https://github.com/EricGuo5513/text-to-motion
-            rep_files.append(animation_save_path)
-
-        sample_files = save_multiple_samples(args, out_path,
-                                               row_print_template, all_print_template, row_file_template, all_file_template,
-                                               caption, num_samples_in_out_file, rep_files, sample_files, sample_i)
-
-    abs_path = os.path.abspath(out_path)
+    # for sample_i in range(args.num_samples):
+    #     rep_files = []
+    #     for rep_i in range(args.num_repetitions):
+    #         caption = all_text[rep_i*args.batch_size + sample_i]
+    #         length = all_lengths[rep_i*args.batch_size + sample_i]
+    #         motion = all_motions[rep_i*args.batch_size + sample_i].transpose(2, 0, 1)[:length]
+    #         save_file = sample_file_template.format(sample_i, rep_i)
+    #         # print(sample_print_template.format(caption, sample_i, rep_i, save_file))
+    #         animation_save_path = os.path.join(out_path, save_file)
+    #         plot_3d_motion(animation_save_path, skeleton, motion, dataset=args.dataset, title=caption, fps=fps)
+    #         # Credit for visualization: https://github.com/EricGuo5513/text-to-motion
+    #         rep_files.append(animation_save_path)
+    #
+    #     sample_files = save_multiple_samples(args, out_path,
+    #                                            row_print_template, all_print_template, row_file_template, all_file_template,
+    #                                            caption, num_samples_in_out_file, rep_files, sample_files, sample_i)
+    #
+    # abs_path = os.path.abspath(out_path)
     # print(f'[Done] Results are at [{abs_path}]')
+
+    # --- 中略（すべてのsampleを生成したあと） ---
+
+    # Save only the first sample (sample_0, repetition_0)
+    caption = all_text[0]
+    length = all_lengths[0]
+    motion = all_motions[0].transpose(2, 0, 1)[:length]
+
+    # save_file = "sample.mp4"
+    # animation_save_path = f"outputsfordemo/{uuid.uuid4()}.mp4"
+    animation_save_path = args.pathfordemo
+
+    print(animation_save_path)
+    plot_3d_motion(animation_save_path, skeleton, motion, dataset=args.dataset, title=caption, fps=fps)
 
 
 def save_multiple_samples(args, out_path, row_print_template, all_print_template, row_file_template, all_file_template,
