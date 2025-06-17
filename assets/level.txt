@@ -1,0 +1,3 @@
+A person is walking slightly angrily.
+A person is walking angrily.
+A person is walking very angrily.

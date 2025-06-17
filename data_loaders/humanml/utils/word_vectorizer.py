@@ -62,7 +62,17 @@ class WordVectorizer(object):
         return len(self.word2vec)
 
     def __getitem__(self, item):
-        word, pos = item.split('/')
+        #if '/' not in item or len(item.split('/')) != 2:
+        #    raise ValueError(f"❌ 無効なトークン形式: '{item}'（word/POS の形式が必要）")
+        #word, pos = item.split('/')
+
+        try:
+            word, pos = item.split('/')
+        except ValueError:
+            # フォーマットが壊れている場合は fallback
+            print(f"⚠️ フォーマット不正なトークン '{item}' に fallback（unk/OTHER）を適用")
+            return self.word2vec['unk'], self._get_pos_ohot('OTHER')
+
         if word in self.word2vec:
             word_vec = self.word2vec[word]
             vip_pos = None

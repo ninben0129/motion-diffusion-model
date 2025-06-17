@@ -1,0 +1,7 @@
+A person is walking joyfully, intensity level middle.
+A person is walking sadly, intensity level middle.
+A person is walking angrily, intensity level middle.
+A person is walking in surprise, intensity level middle.
+A person is walking fearfully, intensity level middle.
+A person is walking in disgust, intensity level middle.
+A person is walking in contempt, intensity level middle.
