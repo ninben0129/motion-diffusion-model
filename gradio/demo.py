@@ -10,7 +10,8 @@ def call_model_and_get_video(prompt):
     output_filename = f"{uuid.uuid4()}.mp4"
     output_path = os.path.join(output_dir, output_filename)
     # model_path = os.path.abspath("./save/finetune_0524_person/model000400000.pt")
-    model_path = "/home/icd/motion-diffusion-model/save/finetune_0524_person/model000400000.pt"
+    # model_path = "/home/icd/motion-diffusion-model/save/finetune_0524_person/model000100000.pt"
+    model_path = "/home/icd/motion-diffusion-model/save/finetune_0401/model000200000.pt"
     motion_diffusion_root = "/home/icd/motion-diffusion-model"
 
     try:
@@ -56,5 +57,11 @@ def call_model_and_get_video(prompt):
 gr.Interface(
     fn=call_model_and_get_video,
     inputs=gr.Textbox(label="プロンプト"),
-    outputs=gr.Video(label="生成動画")
+    outputs=gr.Video(label="生成動画", height=480, width=360),
+    examples=[
+        ["A person is walking in surprise."],
+        ["The Person happily stretches his arms outward."],
+        ["The person angrily crosses his arms over his chest."]
+    ],
+    title="emotional text2motion generation"
 ).launch()
