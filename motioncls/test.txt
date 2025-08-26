@@ -10,3 +10,20 @@ python lstm_emotion_classify.py --mode infer \
 
 
 python lstm_emotion_classify.py --mode train --data_root data --epochs 20 --batch_size 16
+
+python lstm_emotion_classify.py \
+  --mode train \
+  --data_root data \
+  --epochs 20 \
+  --batch_size 16 \
+  --ckpt_name lstm_uni120.pt \
+  --log_file lstm_uni120_log.csv
+
+python lstm_emotion_classify.py \
+  --mode train \
+  --data_root data \
+  --epochs 100 \
+  --batch_size 16 \
+  --ckpt_name lstm_uni120.pt \
+  --log_file lstm_uni120_log.csv \
+  --early_stop_patience 7

@@ -17,6 +17,7 @@ LSTM で (T,263) の可変長系列を 6感情に分類する学習・評価・�
 """
 
 import os
+import csv
 import re
 import math
 import json
@@ -352,27 +353,59 @@ def train_main(args):
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode="max", factor=0.5, patience=args.lr_patience,
+        threshold=args.min_delta, verbose=True
+    )
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
-    best_val_acc = -1.0
-    # best_path = os.path.join(args.ckpt_dir, "best.pt")
-    best_path = os.path.join(args.ckpt_dir, args.ckpt_name)
+    best_val_acc = float("-inf")
+    best_path = os.path.join(args.ckpt_dir, getattr(args, "ckpt_name", "best.pt"))
+
+    no_improve = 0
+    patience = args.early_stop_patience
+    min_delta = args.min_delta
+
+    # === ログファイル準備 ===
+    log_path = os.path.join(args.ckpt_dir, args.log_file)
+    with open(log_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["epoch", "train_loss", "train_acc", "val_loss", "val_acc", "lr"])
 
     for epoch in range(1, args.epochs + 1):
         tr_loss, tr_acc = train_one_epoch(model, train_loader, criterion, optimizer, device, grad_clip=1.0)
-        va_loss, va_acc, y_pred = eval_one_epoch(model, val_loader, criterion, device)
-        print(f"[Epoch {epoch:03d}] train_loss={tr_loss:.4f}  train_acc={tr_acc:.4f} | "
-              f"val_loss={va_loss:.4f}  val_acc={va_acc:.4f}")
+        va_loss, va_acc, _ = eval_one_epoch(model, val_loader, criterion, device)
+        if not math.isnan(va_acc):
+            scheduler.step(va_acc)
 
-        # ベスト更新で保存
-        if va_acc is not None and va_acc > best_val_acc:
+        lr = optimizer.param_groups[0]['lr']
+        print(f"[Epoch {epoch:03d}] train_loss={tr_loss:.4f}  train_acc={tr_acc:.4f} | "
+              f"val_loss={va_loss:.4f}  val_acc={va_acc:.4f}  lr={lr:.2e}")
+
+        # === ログ追記 ===
+        with open(log_path, "a", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow([epoch, tr_loss, tr_acc, va_loss, va_acc, lr])
+
+        # 改善判定と保存
+        improved = (va_acc is not None) and (va_acc > best_val_acc + min_delta)
+        if improved:
             best_val_acc = va_acc
             torch.save({"model": model.state_dict(),
                         "config": vars(args),
                         "classes": EMOTIONS}, best_path)
             print(f"  -> Saved best to: {best_path} (val_acc={best_val_acc:.4f})")
+            no_improve = 0
+        else:
+            no_improve += 1
+            print(f"  -> No improvement ({no_improve}/{patience})")
+
+        if no_improve >= patience:
+            print(f"[EarlyStopping] val_accが {patience} エポック改善しなかったため打ち切り")
+            break
 
     print(f"[Done] Best val_acc = {best_val_acc:.4f}. Checkpoint: {best_path}")
+    print(f"[Log] 学習ログを保存しました: {log_path}")
 
 def load_model(ckpt_path: str, device):
     ckpt = torch.load(ckpt_path, map_location=device)
@@ -459,6 +492,18 @@ def main():
 
     # infer
     parser.add_argument("--input_npy", type=str, help="one .npy to run inference")
+
+    # --- 既存の parser 定義に追記 ---
+    parser.add_argument("--early_stop_patience", type=int, default=5,
+                        help="val_accの改善がこのエポック数連続で止まったら学習を打ち切る")
+    parser.add_argument("--min_delta", type=float, default=1e-4,
+                        help="改善とみなす最小差分（val_accの増加量）")
+
+    # （任意）学習が停滞したら学習率を下げるスケジューラも使いたい場合
+    parser.add_argument("--lr_patience", type=int, default=2,
+                        help="ReduceLROnPlateauのpatience（改善が止まったらLRを下げるまでの猶予）")
+    parser.add_argument("--log_file", type=str, default="train_log.csv",
+                        help="学習ログを保存するCSVファイル名")
 
     args = parser.parse_args()
 
