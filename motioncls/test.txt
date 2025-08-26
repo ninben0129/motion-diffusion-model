@@ -7,3 +7,6 @@ python lstm_emotion_classify.py --mode infer \
 python lstm_emotion_classify.py --mode infer \
   --ckpt checkpoints/best.pt \
   --input_npy data/test/JP_06_fear_1_M.npy
+
+
+python lstm_emotion_classify.py --mode train --data_root data --epochs 20 --batch_size 16

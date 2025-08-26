@@ -355,7 +355,8 @@ def train_main(args):
 
     os.makedirs(args.ckpt_dir, exist_ok=True)
     best_val_acc = -1.0
-    best_path = os.path.join(args.ckpt_dir, "best.pt")
+    # best_path = os.path.join(args.ckpt_dir, "best.pt")
+    best_path = os.path.join(args.ckpt_dir, args.ckpt_name)
 
     for epoch in range(1, args.epochs + 1):
         tr_loss, tr_acc = train_one_epoch(model, train_loader, criterion, optimizer, device, grad_clip=1.0)
@@ -453,6 +454,8 @@ def main():
     # ckpt
     parser.add_argument("--ckpt_dir", type=str, default="checkpoints")
     parser.add_argument("--ckpt", type=str, help="path to checkpoint for infer")
+    parser.add_argument("--ckpt_name", type=str, default="best.pt",
+                        help="checkpoint filename (inside ckpt_dir)")
 
     # infer
     parser.add_argument("--input_npy", type=str, help="one .npy to run inference")
