@@ -1,0 +1,9 @@
+
+# LSTM一個だけ推論
+python lstm_emotion_classify.py --mode infer \
+  --ckpt checkpoints/best.pt \
+  --input_npy data/test/JP_06_anger_2_H.npy
+
+python lstm_emotion_classify.py --mode infer \
+  --ckpt checkpoints/best.pt \
+  --input_npy data/test/JP_06_fear_1_M.npy

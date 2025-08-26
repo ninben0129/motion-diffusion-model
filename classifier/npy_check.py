@@ -2,7 +2,8 @@ import numpy as np
 
 # 調べたいnpyファイルのパス
 # file_path = 'results.npy'
-file_path = 'joint_vec2.npy'
+# file_path = 'joint_vec2.npy'
+file_path = 'joint_vec.npy'
 
 # npyファイルの読み込み
 data = np.load(file_path, allow_pickle=True)  # allow_pickle=True は必要に応じて
