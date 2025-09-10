@@ -182,23 +182,23 @@ class LSTMClassifierPacked(nn.Module):
         self.fc = nn.Linear(out_dim, num_classes)
 
     def forward(self, x_padded, lengths):
-        # ソート（packは降順必須）
-        lengths_sorted, perm_idx = lengths.sort(descending=True)
-        x_sorted = x_padded[perm_idx]
+        # （ソートはどちらでも）pack時に enforce_sorted=False を使うと楽です
+        packed = pack_padded_sequence(
+            x_padded, lengths.cpu(), batch_first=True, enforce_sorted=False
+        )
+        _, (h_n, _) = self.lstm(packed)
+        # h_n: [num_layers * num_directions, B, hidden_size]
 
-        packed = pack_padded_sequence(x_sorted, lengths_sorted.cpu(), batch_first=True)
-        packed_output, (h_n, c_n) = self.lstm(packed)
+        if self.lstm.bidirectional:
+            # 最終層の forward/backward を取り出して連結
+            last_fwd = h_n[-2]  # [B, H]
+            last_bwd = h_n[-1]  # [B, H]
+            last_layer_h = torch.cat([last_fwd, last_bwd], dim=1)  # [B, 2H]
+        else:
+            last_layer_h = h_n[-1]  # [B, H]
 
-        # h_n: [num_layers * num_directions, B, hidden]
-        # 最上段（最後の層）の隠れ状態を使う
-        last_layer_h = h_n[-1]  # [B, hidden]  (単方向)
-        # 双方向なら forward/backward を連結する場合は別処理が必要だが、上で out_dim を調整済み
         out = self.relu(last_layer_h)
-        logits = self.fc(out)  # [B, num_classes]
-
-        # 元順序に戻す
-        _, unperm_idx = perm_idx.sort()
-        logits = logits[unperm_idx]
+        logits = self.fc(out)  # 単方向: [B,H]→[B,C], 双方向: [B,2H]→[B,C]
         return logits
 
     @torch.no_grad()
