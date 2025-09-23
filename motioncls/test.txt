@@ -37,3 +37,55 @@ python lstm_emotion_classify.py \
   --log_file bilstm_0909.csv \
   --early_stop_patience 7 \
   --bidirectional
+
+  python lstm_intensity_classify.py \
+    --mode train \
+    --data_root data \
+    --epochs 100 \
+    --batch_size 16 \
+    --early_stop_patience 5 \
+    --min_delta 1e-4
+
+  python lstm_emotion_classify.py \
+  --mode train \
+  --data_root data_TW \
+  --epochs 100 \
+  --batch_size 16 \
+  --bidirectional \
+  --early_stop_patience 7 \
+  --ckpt_dir checkpoints \
+  --ckpt_name bilstm_TW.pt \
+  --log_file bilstm_TW_log.csv
+
+ python lstm_emotion_classify.py --mode train --data_root data_TW \
+  --bidirectional --hidden_size 256 --dropout 0.3 \
+  --ckpt_name bilstm_h256_do03.pt --log_file bilstm_h256_do03.csv
+
+  python lstm_emotion_classify.py \
+  --mode train \
+  --data_root data_TW \
+  --epochs 50 \
+  --batch_size 16 \
+  --bidirectional \
+  --num_layers 2 \
+  --hidden_size 256 \
+  --dropout 0.3 \
+  --early_stop_patience 5 \
+  --ckpt_dir checkpoints \
+  --ckpt_name bilstm2_h256_do03_ep50.pt \
+  --log_file bilstm2_h256_do03_ep50.csv
+
+python lstm_emotion_classify.py \
+  --mode train \
+  --data_root data_TW \
+  --epochs 100 \
+  --batch_size 16 \
+  --bidirectional \
+  --num_layers 2 \
+  --hidden_size 512 \
+  --dropout 0.5 \
+  --early_stop_patience 8 \
+  --ckpt_dir checkpoints \
+  --ckpt_name bilstm2_h512_do05_ep100.pt \
+  --log_file bilstm2_h512_do05_ep100.csv
+

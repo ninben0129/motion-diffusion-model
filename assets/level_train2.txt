@@ -1,0 +1,9 @@
+A person holds something in both hands and quickly takes two steps forward in anger, emotional intensity level low.
+A person holds something in both hands and quickly takes two steps forward in anger, emotional intensity level middle.
+A person holds something in both hands and quickly takes two steps forward in anger, emotional intensity level high.
+He places both hands in front of his chest, looks around to both sides, and then steps back in fear, emotional intensity level low.
+He places both hands in front of his chest, looks around to both sides, and then steps back in fear, emotional intensity level middle.
+He places both hands in front of his chest, looks around to both sides, and then steps back in fear, emotional intensity level high.
+A person takes a step forward, bends down, lifts a vase, and joyfully admires the flowers from below, emotional intensity level low.
+A person takes a step forward, bends down, lifts a vase, and joyfully admires the flowers from below, emotional intensity level middle.
+A person takes a step forward, bends down, lifts a vase, and joyfully admires the flowers from below, emotional intensity level high.

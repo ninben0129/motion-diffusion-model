@@ -82,3 +82,5 @@ python -m sample.generateforuserstudy --model_path ./save/finetune_0524_person/m
 python -m sample.generateforuserstudy --model_path ./save/humanml_trans_enc_512/model000475000.pt --input_text ./assets/userstudy_prompt.txt --num_repetitions 1
 
 python -m sample.generate263D --model_path ./save/finetune_0524_person/model000200000.pt --input_text ./assets/text_test_263D.txt
+
+python -m sample.generate --model_path ./save/finetune_level_0612/model000200000.pt --input_text ./assets/level_train2.txt
