@@ -30,6 +30,7 @@ import torch
 import torch.nn as nn
 from torch.nn.utils.rnn import pack_padded_sequence
 from torch.utils.data import Dataset, DataLoader
+from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 # ==========
 # 0. 定数
@@ -37,6 +38,7 @@ from torch.utils.data import Dataset, DataLoader
 EMOTIONS = ["sadness", "anger", "joy", "fear", "shame", "pride"]
 EMO2IDX = {e: i for i, e in enumerate(EMOTIONS)}
 IDX2EMO = {i: e for e, i in EMO2IDX.items()}
+
 
 # =======================================
 # 1. ユーティリティ（乱数固定・デバイス）
@@ -47,8 +49,10 @@ def set_seed(seed: int = 42):
     torch.manual_seed(seed)
     torch.cuda.manual_seed_all(seed)
 
+
 def get_device():
     return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 
 # ======================
 # 2. データセット定義
@@ -60,6 +64,7 @@ class EmotionSequenceDataset(Dataset):
     - array: (T,263) のみなら、ファイル名からラベルを抽出
     で (tensor[T,263], T, label_idx) を返す。
     """
+
     def __init__(self, root_dir: str, allow_missing_label_from_name: bool = True):
         super().__init__()
         self.root_dir = root_dir
@@ -139,9 +144,10 @@ class EmotionSequenceDataset(Dataset):
             raise ValueError(f"Expect motion (T,263), got {motion.shape} at {fpath}")
 
         T = motion.shape[0]
-        x = torch.from_numpy(motion).float()      # [T,263]
+        x = torch.from_numpy(motion).float()  # [T,263]
         y = torch.tensor(EMO2IDX[label_str], dtype=torch.long)
         return x, T, y, fpath
+
 
 def collate_pad(batch):
     """
@@ -159,6 +165,7 @@ def collate_pad(batch):
     ys = torch.tensor(ys, dtype=torch.long)
     return x_padded, lengths, ys, paths
 
+
 # ======================
 # 3. モデル定義
 # ======================
@@ -168,6 +175,7 @@ class LSTMClassifierPacked(nn.Module):
     - forward は生 logits を返す（学習で CrossEntropyLoss を使うため）
     - 予測時は predict_proba / predict を利用
     """
+
     def __init__(self, input_size=263, hidden_size=120, num_classes=6,
                  num_layers=1, bidirectional=False, dropout=0.0):
         super().__init__()
@@ -211,6 +219,7 @@ class LSTMClassifierPacked(nn.Module):
         probs = self.predict_proba(x_padded, lengths)
         return probs.argmax(dim=1), probs
 
+
 # ======================
 # 4. 学習・評価ループ
 # ======================
@@ -218,6 +227,7 @@ def accuracy_from_logits(logits, y):
     pred = logits.argmax(dim=1)
     correct = (pred == y).sum().item()
     return correct / y.size(0)
+
 
 def train_one_epoch(model, loader, criterion, optimizer, device, grad_clip=1.0):
     model.train()
@@ -240,6 +250,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device, grad_clip=1.0):
         epoch_acc += accuracy_from_logits(logits, y) * bs
         n += bs
     return epoch_loss / n, epoch_acc / n
+
 
 @torch.no_grad()
 def eval_one_epoch(model, loader, criterion, device):
@@ -266,6 +277,7 @@ def eval_one_epoch(model, loader, criterion, device):
     pred_cat = torch.cat(all_pred)
     return epoch_loss / n, epoch_acc / n, (y_cat.numpy(), pred_cat.numpy())
 
+
 def stratified_split(paths_labels: List[Tuple[str, str]],
                      val_ratio: float = 0.2,
                      seed: int = 42):
@@ -281,6 +293,7 @@ def stratified_split(paths_labels: List[Tuple[str, str]],
         train_list += lst[k:]
     return train_list, val_list
 
+
 def make_loaders(data_root: str, batch_size: int, num_workers: int,
                  auto_split_if_no_val: bool, seed: int):
     train_dir = os.path.join(data_root, "train")
@@ -288,7 +301,7 @@ def make_loaders(data_root: str, batch_size: int, num_workers: int,
 
     if os.path.isdir(val_dir) and any(fn.endswith(".npy") for fn in os.listdir(val_dir)):
         train_ds = EmotionSequenceDataset(train_dir)
-        val_ds   = EmotionSequenceDataset(val_dir)
+        val_ds = EmotionSequenceDataset(val_dir)
     else:
         # train の中だけに .npy を入れておき、自動で層化分割
         full_ds = EmotionSequenceDataset(train_dir)
@@ -299,7 +312,10 @@ def make_loaders(data_root: str, batch_size: int, num_workers: int,
         class _SubDS(Dataset):
             def __init__(self, items):
                 self.items = items
-            def __len__(self): return len(self.items)
+
+            def __len__(self):
+                return len(self.items)
+
             def __getitem__(self, i):
                 path, lab = self.items[i]
                 # 元クラスの __getitem__ 相当
@@ -316,7 +332,7 @@ def make_loaders(data_root: str, batch_size: int, num_workers: int,
                 return x, T, y, path
 
         train_ds = _SubDS(train_items)
-        val_ds   = _SubDS(val_items)
+        val_ds = _SubDS(val_items)
 
     train_loader = DataLoader(
         train_ds, batch_size=batch_size, shuffle=True,
@@ -329,6 +345,7 @@ def make_loaders(data_root: str, batch_size: int, num_workers: int,
         collate_fn=collate_pad
     )
     return train_loader, val_loader
+
 
 # ======================
 # 5. メイン（学習 / 推論）
@@ -407,6 +424,7 @@ def train_main(args):
     print(f"[Done] Best val_acc = {best_val_acc:.4f}. Checkpoint: {best_path}")
     print(f"[Log] 学習ログを保存しました: {log_path}")
 
+
 def load_model(ckpt_path: str, device):
     ckpt = torch.load(ckpt_path, map_location=device)
     cfg = ckpt.get("config", {})
@@ -421,6 +439,38 @@ def load_model(ckpt_path: str, device):
     model.load_state_dict(ckpt["model"])
     model.eval()
     return model
+
+
+# === 推論用ヘルパー（infer_one / infer_dir から呼ぶ） ===
+def _extract_label_from_obj_or_name(obj, npy_path: str) -> Optional[str]:
+    label_str = None
+    if isinstance(obj, dict):
+        label_str = obj.get("label", None)
+        if isinstance(label_str, bytes):
+            label_str = label_str.decode()
+        if isinstance(label_str, str):
+            label_str = label_str.strip().lower()
+    if not label_str:
+        low = os.path.basename(npy_path).lower()
+        for emo in EMOTIONS:
+            if emo in low:
+                label_str = emo
+                break
+    return label_str
+
+
+def _load_motion_and_label(npy_path: str):
+    raw = np.load(npy_path, allow_pickle=True)
+    if isinstance(raw, np.ndarray) and raw.dtype == object and raw.size == 1:
+        raw = raw.item()
+    if isinstance(raw, dict):
+        motion = raw["motion"]
+        label_str = _extract_label_from_obj_or_name(raw, npy_path)
+    else:
+        motion = raw
+        label_str = _extract_label_from_obj_or_name({}, npy_path)
+    return motion, label_str
+
 
 @torch.no_grad()
 def infer_one(args):
@@ -461,7 +511,98 @@ def infer_one(args):
         print(f"  (Ref) label from file: {label_str}")
     print(f"  Pred: {IDX2EMO[pred_idx]}")
     for i, p in enumerate(probs):
-        print(f"    {IDX2EMO[i]:>7s}: {p*100:.2f}%")
+        print(f"    {IDX2EMO[i]:>7s}: {p * 100:.2f}%")
+
+
+# 追加: ディレクトリ一括推論
+@torch.no_grad()
+def infer_dir(args):
+    device = get_device()
+    model = load_model(args.ckpt, device)
+
+    # 対象ファイル列挙
+    npy_paths = []
+    for dp, _, fns in os.walk(args.input_dir):
+        for fn in fns:
+            if fn.lower().endswith(".npy"):
+                npy_paths.append(os.path.join(dp, fn))
+    if len(npy_paths) == 0:
+        print(f"[InferDir] No .npy found in: {args.input_dir}")
+        return
+
+    results = []
+    n_cls = len(EMOTIONS)
+    conf = np.zeros((n_cls, n_cls), dtype=int)
+    correct_per = {e: 0 for e in EMOTIONS}
+    total_per = {e: 0 for e in EMOTIONS}
+    overall_correct = 0
+    overall_total = 0
+
+    for p in sorted(npy_paths):
+        try:
+            motion, label_str = _load_motion_and_label(p)
+        except Exception as e:
+            print(f"[Warn] Failed to load {p}: {e}")
+            continue
+
+        x = torch.from_numpy(motion).float().unsqueeze(0).to(device)  # [1,T,263]
+        lengths = torch.tensor([motion.shape[0]], dtype=torch.long).to(device)
+        pred_idx, probs = model.predict(x, lengths)
+        pred_idx = int(pred_idx.item())
+        pred_label = IDX2EMO[pred_idx]
+        prob_vec = probs.squeeze(0).cpu().numpy()
+
+        is_correct = None
+        if label_str in EMO2IDX:
+            true_idx = EMO2IDX[label_str]
+            total_per[label_str] += 1
+            conf[true_idx, pred_idx] += 1
+            if pred_idx == true_idx:
+                correct_per[label_str] += 1
+                overall_correct += 1
+            overall_total += 1
+            is_correct = (pred_idx == true_idx)
+
+        row = {
+            "path": p,
+            "true_label": label_str or "",
+            "pred_label": pred_label,
+            "pred_prob": float(prob_vec[pred_idx]),
+            "correct": is_correct,
+        }
+        # 各クラス確率も展開
+        for i, emo in enumerate(EMOTIONS):
+            row[f"prob_{emo}"] = float(prob_vec[i])
+        results.append(row)
+
+    # サマリ出力
+    print("=== Directory Inference Summary ===")
+    print(f"Total files found: {len(npy_paths)}")
+    if overall_total > 0:
+        overall_acc = overall_correct / overall_total
+        print(f"Evaluated (with label): {overall_total}")
+        print(f"Overall accuracy: {overall_acc:.4f} ({overall_correct}/{overall_total})")
+        print("Per-label accuracy:")
+        for emo in EMOTIONS:
+            t = total_per[emo]
+            if t > 0:
+                acc = correct_per[emo] / t
+                print(f"  {emo:7s}: {acc:.4f} ({correct_per[emo]}/{t})")
+        print("Confusion matrix (rows=true, cols=pred):")
+        print(conf)
+    else:
+        print("No usable labels found; accuracy not computed (results CSV only).")
+
+    # CSV 保存
+    if args.save_csv:
+        keys = list(results[0].keys()) if results else []
+        with open(args.save_csv, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=keys)
+            writer.writeheader()
+            for r in results:
+                writer.writerow(r)
+        print(f"[Saved] {args.save_csv}")
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -505,14 +646,27 @@ def main():
     parser.add_argument("--log_file", type=str, default="train_log.csv",
                         help="学習ログを保存するCSVファイル名")
 
+    # 変更: argparse にオプション追加
+    parser.add_argument("--input_dir", type=str, help="run inference for all .npy files under this directory")
+    parser.add_argument("--save_csv", type=str, default=None, help="path to save per-file predictions as CSV")
+
     args = parser.parse_args()
 
+    # 変更: main() の infer 分岐を少し拡張
     if args.mode == "train":
         train_main(args)
     else:
-        if not args.ckpt or not args.input_npy:
-            raise SystemExit("--mode infer requires --ckpt and --input_npy")
-        infer_one(args)
+        if not args.ckpt:
+            raise SystemExit("--mode infer requires --ckpt")
+        if args.input_npy and args.input_dir:
+            raise SystemExit("Use either --input_npy or --input_dir (not both)")
+        if args.input_npy:
+            infer_one(args)
+        elif args.input_dir:
+            infer_dir(args)
+        else:
+            raise SystemExit("--mode infer requires --input_npy or --input_dir")
+
 
 if __name__ == "__main__":
     main()

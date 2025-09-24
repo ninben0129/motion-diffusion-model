@@ -89,3 +89,8 @@ python lstm_emotion_classify.py \
   --ckpt_name bilstm2_h512_do05_ep100.pt \
   --log_file bilstm2_h512_do05_ep100.csv
 
+python lstm_emotion_classify.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm_TW.pt \
+  --input_dir data/train \
+  --save_csv preds_JP.csv
