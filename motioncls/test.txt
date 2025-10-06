@@ -94,3 +94,42 @@ python lstm_emotion_classify.py \
   --ckpt checkpoints/bilstm_TW.pt \
   --input_dir data/train \
   --save_csv preds_JP.csv
+
+
+python lstm_emotion_classify_tail.py --mode train --data_root data_TW \
+      --epochs 100 --batch_size 16 --bidirectional --num_layers 2 \
+      --hidden_size 256 --dropout 0.3 \
+      --early_stop_patience 8 \
+      --tail_crop --tail_min_ratio 0.3 --train_crop_len 800 --tail_mix_prob 0.5 \
+      --ckpt_dir checkpoints --ckpt_name bilstm2_h256_tail03_w800_mix05.pt \
+      --log_file bilstm2_h256_tail03_w800_mix05.csv
+
+
+python lstm_emotion_classify.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm2_h256_tail03_w800_mix05.pt \
+  --input_dir data/train \
+  --save_csv preds_JP_tail.csv
+
+python lstm_emotion_classify_basic7.py --mode train --data_root data_TW \
+      --epochs 60 --batch_size 16 --bidirectional --num_layers 2 \
+      --hidden_size 256 --dropout 0.3 \
+      --center_crop --crop_ratio 0.6 --center_low 0.3 --center_high 0.7 --center_mix_prob 0.5 \
+      --ckpt_dir checkpoints --ckpt_name bilstm2_h256_center06_mix05_basic7.pt \
+      --log_file bilstm2_h256_center06_mix05_basic7.csv
+
+python lstm_emotion_classify_basic7.py --mode train --data_root data_TW \
+  --epochs 80 --batch_size 16 --bidirectional --num_layers 2 \
+  --hidden_size 384 --dropout 0.3 \
+  --center_crop --crop_ratio 0.7 --center_low 0.3 --center_high 0.65 --center_mix_prob 0.7 \
+  --lr 8e-4 --weight_decay 2e-4 --lr_patience 3 \
+  --early_stop_patience 8 --min_delta 5e-4 \
+  --ckpt_dir checkpoints --ckpt_name bilstm2_h384_center07_mix07.pt \
+  --log_file bilstm2_h384_center07_mix07.csv
+
+python lstm_emotion_classify_basic7.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm2_h384_center07_mix07.pt \
+  --input_dir data/train \
+  --save_csv preds_JP_basic7_1208.csv
+
