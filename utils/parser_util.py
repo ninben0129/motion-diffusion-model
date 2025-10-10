@@ -227,6 +227,7 @@ def generate_args():
     add_base_options(parser)
     add_sampling_options(parser)
     add_generate_options(parser)
+    add_custom_sampling_options(parser)  # ←★ この1行をここに追加！
     args = parse_and_load_from_model(parser)
     cond_mode = get_cond_mode(args)
 
@@ -236,6 +237,18 @@ def generate_args():
         raise Exception('Arguments action_file and action_name should not be used for a text condition. Please use input_text or text_prompt.')
 
     return args
+
+def add_custom_sampling_options(parser):
+    """
+    Additional sampling options for batch generation scripts (e.g., generate263D_1006).
+    These do NOT affect normal sampling, training, or evaluation scripts unless explicitly used.
+    """
+    group = parser.add_argument_group('custom_sampling')
+    group.add_argument("--name_list", type=str, default="",
+                       help="A text file containing a list of base names (no extensions). Each corresponds to a .txt file in prompt_dir.")
+    group.add_argument("--prompt_dir", type=str, default="",
+                       help="Directory containing prompt .txt files. Each filename (without extension) should match an entry in name_list.")
+
 
 
 def edit_args():

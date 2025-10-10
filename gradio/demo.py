@@ -10,8 +10,8 @@ def call_model_and_get_video(prompt):
     output_filename = f"{uuid.uuid4()}.mp4"
     output_path = os.path.join(output_dir, output_filename)
     # model_path = os.path.abspath("./save/finetune_0524_person/model000400000.pt")
-    # model_path = "/home/icd/motion-diffusion-model/save/finetune_0524_person/model000100000.pt"
-    model_path = "/home/icd/motion-diffusion-model/save/finetune_0401/model000200000.pt"
+    model_path = "/home/icd/motion-diffusion-model/save/finetune_0524_person/model000200000.pt"
+    # model_path = "/home/icd/motion-diffusion-model/save/finetune_0401/model000200000.pt"
     motion_diffusion_root = "/home/icd/motion-diffusion-model"
 
     try:

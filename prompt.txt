@@ -84,3 +84,18 @@ python -m sample.generateforuserstudy --model_path ./save/humanml_trans_enc_512/
 python -m sample.generate263D --model_path ./save/finetune_0524_person/model000200000.pt --input_text ./assets/text_test_263D.txt
 
 python -m sample.generate --model_path ./save/finetune_level_0612/model000200000.pt --input_text ./assets/level_train2.txt
+
+python -m sample.generate263D_1006 \
+  --model_path ./save/finetune_0524_person/model000200000.pt \
+  --num_repetitions 1 \
+  --output_dir ./classifier/output_finetuned \
+  --name_list ./dataset/HumanML3D/test.txt \
+  --prompt_dir ./dataset/HumanML3D/texts
+
+python -m sample.generate263D_1006 \
+  --model_path ./save/humanml_trans_enc_512/model000475000.pt \
+  --num_repetitions 1 \
+  --output_dir ./classifier/output_pretrained \
+  --name_list ./dataset/HumanML3D/test.txt \
+  --prompt_dir ./dataset/HumanML3D/texts
+

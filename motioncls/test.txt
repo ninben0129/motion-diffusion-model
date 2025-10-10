@@ -133,3 +133,27 @@ python lstm_emotion_classify_basic7.py \
   --input_dir data/train \
   --save_csv preds_JP_basic7_1208.csv
 
+python lstm_emotion_classify_basic7.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm2_h384_center07_mix07.pt \
+  --input_dir output_pretrained \
+  --save_csv preds_pretrained.csv
+
+python lstm_emotion_classify_basic7.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm2_h384_center07_mix07.pt \
+  --input_dir output_finetuned \
+  --save_csv preds_finetuned.csv
+
+python lstm_emotion_classify_basic7.py \
+  --mode infer \
+  --ckpt checkpoints/bilstm2_h384_center07_mix07.pt \
+  --input_dir groundtruth_test \
+  --save_csv preds_groundtruth.csv
+
+python -m sample.generate263D_1006 \
+  --model_path ./save/finetune_0524_person/model000200000.pt \
+  --num_repetitions 1 \
+  --output_dir ./classifier/output_finetuned \
+  --name_list ./dataset/HumanML3D/test.txt \
+  --prompt_dir ./dataset/new_joint_vecs
